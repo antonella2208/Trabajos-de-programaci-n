@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lanzamientos de SpaceX</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:20px; background-color:#f0f2f5;}
+.header { text-align:center; margin-bottom:20px;}
+.header h1 { color:#333;}
+.header .filters button { background-color:#007bff; color:white; border:none; padding:10px 20px; margin:0 5px; border-radius:5px; cursor:pointer; font-size:16px; transition: background-color 0.3s;}
+.header .filters button:hover { background-color:#0056b3;}
+#app { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px;}
+.launch { background-color:#fff; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); padding:15px; text-align:center; cursor:pointer; transition:transform 0.2s;}
+.launch:hover { transform:translateY(-5px);}
+.launch img { width:100px; height:100px; object-fit:contain; margin-bottom:10px;}
+.launch h2 { font-size:1.2em; color:#333; margin:0 0 5px;}
+.launch p { font-size:0.9em; color:#666; margin:0;}
+.launch-detail { background-color:#fff; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); padding:20px; text-align:center; max-width:600px; margin:auto;}
+.launch-detail button { background-color:#6c757d; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; margin-bottom:20px;}
+.launch-detail img { max-width:100%; height:auto; border-radius:8px; margin-bottom:15px;}
+.launch-detail h2 { font-size:1.8em; color:#333; margin-bottom:10px;}
+.launch-detail p { text-align:left; margin:10px 0; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Lanzamientos de SpaceX</h1>
+<div class="filters">
+<button onclick="showLaunches('todos')">Todos con detalles</button>
+<button onclick="showLaunches('exitosos')">Exitosos con detalles</button>
+</div>
+</div>
+
+<div id="app"><p>Cargando lanzamientos...</p></div>
+
+<script>
+const app = document.getElementById("app");
+let allLaunches = [];
+let rocketsMap = {};
+
+// Nombres de cohetes en español
+const rocketsES = {
+"Falcon 1":"Halconcito 1",
+"Falcon 9":"Halconcito 9",
+"Falcon Heavy":"Halconcito Pesado",
+"Starship":"Nave Estelar"
+};
+
+// Construye detalles en español usando solo datos de la API
+function generarDetalles(launch){
+    const rocket = rocketsMap[launch.rocket] || "Desconocido";
+    const estado = launch.success === null ? "En proceso" : launch.success ? "✅ Éxito" : "❌ Falla";
+    const fecha = new Date(launch.date_utc).toLocaleDateString("es-ES") + " " + new Date(launch.date_utc).toLocaleTimeString("es-ES");
+
+    let detalles = `Misión: ${launch.name}.\nFecha y hora: ${fecha}.\nCohete: ${rocket}.\nEstado del lanzamiento: ${estado}.`;
+
+    // Carga útil si existe
+    if(launch.payloads && launch.payloads.length>0){
+        detalles += `\nCarga(s): ${launch.payloads.join(", ")}.`;
+    }
+
+    // Órbita si existe
+    if(launch.cores && launch.cores[0] && launch.cores[0].landing_target){
+        detalles += `\nPlataforma de aterrizaje: ${launch.cores[0].landing_target}.`;
+    }
+
+    return detalles;
+}
+
+// Trae información de cohetes
+async function fetchRockets(){
+    const res = await fetch("https://api.spacexdata.com/v4/rockets");
+    const rockets = await res.json();
+    rockets.forEach(r=>rocketsMap[r.id] = rocketsES[r.name] || r.name);
+}
+
+// Renderiza lista de lanzamientos
+function renderLaunches(launches){
+    if(!launches.length){ app.innerHTML="<p>No hay lanzamientos con detalles disponibles.</p>"; return;}
+    app.innerHTML = launches.map(l=>`
+        <div class="launch" onclick="showLaunchDetail('${l.flight_number}')">
+            <img src="${l.links.patch.small||'https://via.placeholder.com/100?text=Sin+Imagen'}" alt="${l.name}">
+            <h2>${l.name}</h2>
+            <p><strong>Fecha:</strong> ${new Date(l.date_utc).toLocaleDateString("es-ES")}</p>
+            <p><strong>Estado:</strong> ${l.success===null?"En proceso":l.success?"✅ Éxito":"❌ Falla"}</p>
+        </div>
+    `).join('');
+}
+
+// Muestra detalle del lanzamiento en español
+function showLaunchDetail(flightNumber){
+    const launch = allLaunches.find(l=>l.flight_number==flightNumber);
+    const detalles = generarDetalles(launch).replace(/\n/g,"<br>");
+    app.innerHTML=`
+        <div class="launch-detail">
+            <button onclick="showLaunches('todos')">← Volver</button>
+            <img src="${launch.links.patch.large||launch.links.patch.small||'https://via.placeholder.com/350?text=Sin+Imagen'}" alt="${launch.name}">
+            <h2>${launch.name}</h2>
+            <p><strong>Detalles:</strong><br>${detalles}</p>
+        </div>
+    `;
+}
+
+// Filtra lanzamientos que tengan "details" o datos suficientes
+function showLaunches(tipo){
+    let filtered=[];
+    if(tipo==="todos") filtered = allLaunches.filter(l=>l.details);
+    else if(tipo==="exitosos") filtered = allLaunches.filter(l=>l.success && l.details);
+    renderLaunches(filtered);
+}
+
+// Trae todos los lanzamientos
+async function fetchLaunches(){
+    try{
+        app.innerHTML="<p>Cargando lanzamientos...</p>";
+        await fetchRockets();
+        const res = await fetch("https://api.spacexdata.com/v5/launches");
+        allLaunches = (await res.json()).reverse();
+        showLaunches('todos');
+    }catch(err){
+        app.innerHTML="<p>Error al cargar los lanzamientos 🚨</p>";
+        console.error(err);
+    }
+}
+
+fetchLaunches();
+</script>
+</body>
+</html>
