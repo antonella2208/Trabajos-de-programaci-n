@@ -1,0 +1,70 @@
+ body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #fff8e1; /* fondo suave */
+  color: #2c2c54;           /* texto oscuro */
+}
+
+h1 {
+  color: #ffb300;           /* amarillo Flybondi */
+  font-size: 2em;
+  text-align: center;
+}
+
+.controls {
+  margin: 20px 0;
+  text-align: center;
+}
+
+label, input, button {
+  font-size: 1.3em;
+  margin: 10px;
+}
+
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #ffb300;
+}
+
+button {
+  padding: 12px 24px;
+  background: #ffb300;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.2em;
+  border-radius: 8px;
+  color: #2c2c54;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #e0a600;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+  font-size: 1.2em;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 14px;
+  text-align: center;
+}
+
+th {
+  background-color: #ffb300;
+  color: #2c2c54;
+}
+
+tr:nth-child(even) {
+  background-color: #fff3cd; /* filas alternadas */
+}
+
+tr:hover {
+  background-color: #ffe082; /* resaltado al pasar el mouse */
+}

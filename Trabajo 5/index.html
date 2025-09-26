@@ -1,0 +1,40 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Flybondi Challenge</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>¿A dónde quiere viajar?</h1>
+
+  <div class="controls">
+    <label for="budget">Presupuesto ($):</label>
+    <input type="number" id="budget" value="800" />
+    <button id="findTrips">Buscar viajes</button>
+  </div>
+
+  <p id="message" style="font-size:1.3em; font-weight:bold; text-align:center; margin-top:20px;">
+    Ingresá tu presupuesto y buscá viajes ✈️
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Destino</th>
+        <th>Ida</th>
+        <th>Vuelta</th>
+        <th>Precio Total</th>
+        <th>Asientos disponibles</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="results"></tbody>
+  </table>
+
+  <h2 style="margin-top:40px; color:#2c2c54;">✅ Viajes confirmados</h2>
+  <ul id="confirmedTrips" style="font-size:1.2em;"></ul>
+
+  <script src="app.js"></script>
+</body>
+</html>
